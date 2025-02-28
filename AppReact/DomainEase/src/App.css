@@ -1,0 +1,12 @@
+#root,
+body,
+html {
+  margin: 0 auto;
+  padding: 0;
+  text-align: center;
+}
+
+.custom-shadow {
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+}
+

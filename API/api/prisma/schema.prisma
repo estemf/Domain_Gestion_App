@@ -1,0 +1,82 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model dns_servers {
+  id                Int                 @id @default(autoincrement())
+  ip_address        String              @unique @db.VarChar(50)
+  url               String?             @db.VarChar(255)
+  created_at        DateTime?           @default(now()) @db.Timestamp(6)
+  domain_dns_server domain_dns_server[]
+}
+
+model domain_dns_server {
+  domain_id     Int
+  dns_server_id Int
+  status_id     Int         @default(1)
+  created_at    DateTime?   @default(now()) @db.Timestamp(6)
+  dns_servers   dns_servers @relation(fields: [dns_server_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  domains       domains     @relation(fields: [domain_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  status        status      @relation(fields: [status_id], references: [id], onDelete: SetNull, onUpdate: NoAction)
+
+  @@id([domain_id, dns_server_id])
+}
+
+model domains {
+  id                Int                 @id @default(autoincrement())
+  user_id           Int
+  name              String              @unique @db.VarChar(255)
+  created_at        DateTime?           @default(now()) @db.Timestamp(6)
+  domain_dns_server domain_dns_server[]
+  users             users               @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  records           records[]
+}
+
+model record_type {
+  id      Int       @id @default(autoincrement())
+  name    String    @unique @db.VarChar(50)
+  records records[]
+}
+
+model records {
+  id             Int         @id @default(autoincrement())
+  domain_id      Int
+  record_name    String      @db.VarChar(255)
+  target         String      @db.VarChar(255)
+  priority       Int?
+  ttl            Int?        @default(3600)
+  record_type_id Int
+  created_at     DateTime?   @default(now()) @db.Timestamp(6)
+  domains        domains     @relation(fields: [domain_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  record_type    record_type @relation(fields: [record_type_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model role {
+  id    Int     @id @default(autoincrement())
+  name  String  @unique @db.VarChar(255)
+  users users[]
+}
+
+model status {
+  id                Int                 @id @default(autoincrement())
+  name              String              @unique @db.VarChar(50)
+  domain_dns_server domain_dns_server[]
+}
+
+model users {
+  id         Int       @id @default(autoincrement())
+  username   String    @unique @db.VarChar(255)
+  last_name  String?   @db.VarChar(255)
+  first_name String?   @db.VarChar(255)
+  email      String?   @db.VarChar(255)
+  password   String    @db.VarChar(255)
+  role_id    Int?
+  created_at DateTime? @default(now()) @db.Timestamp(6)
+  domains    domains[]
+  role       role?     @relation(fields: [role_id], references: [id], onUpdate: NoAction)
+}
